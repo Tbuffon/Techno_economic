@@ -112,7 +112,7 @@ class Alkelectrolyzer(object):
 
 
     def volt_rev(self,  ):
-        a = -0.0151*self.m-1.6788*10**(-3)*self.m**2+2.2588*10**(-5)**self.m**3
+        a = -0.0151*self.m-1.6788*10**(-3)*self.m**2+2.2588*10**(-5)*self.m**3
         b =1-1.2062*10**(-3)*self.m+5.6024*10**(-4)*self.m**2-7.8228*self.m**3*10**(-6)
         P_v_h2o = math.exp(81.6179-7699.68/(self.T+273.15)-10.9*math.log(self.T+273.15)+9.5891*10**(-3)*(self.T+273.15))
 
@@ -129,8 +129,9 @@ class Alkelectrolyzer(object):
 
         self.i0_an  = self.y_m_an*self.i0_an_ref*math.exp(-self.E_a_act_an*10**(3)/self.Ru*(1/(self.T+273.15)-1/self.T_ref))
 
-
-        volt_act_an = self.Ru*(self.T+273.15)/(self.a_an*self.F)*math.asinh(self.i/2*self.i0_an*(1-self.theta))
+        #testa = math.asinh(self.i/(2*self.i0_an*(1-self.theta)))
+        #testb = self.Ru*(self.T+273.15)/(self.a_an*self.F)
+        volt_act_an = self.Ru * (self.T + 273.15) / (self.a_an * self.F) * math.asinh(self.i / (2 * self.i0_an * (1 - self.theta)))
         return volt_act_an
 
     def volt_act_cat(self):
@@ -138,7 +139,7 @@ class Alkelectrolyzer(object):
 
         self.i0_cat = self.y_m_cat * self.i0_cat_ref * math.exp(
             -self.E_a_act_cat * 10 ** (3) / self.Ru * (1 / (self.T + 273.15) - 1 / self.T_ref))
-        volt_act_an = self.Ru * (self.T+273.15) / (self.a_cat * self.F) * math.asinh(self.i / 2 * self.i0_cat * (1 - self.theta))
+        volt_act_an = self.Ru * (self.T+273.15) / (self.a_cat * self.F) * math.asinh(self.i / (2 * self.i0_cat * (1 - self.theta)))
 
         return volt_act_an
 
@@ -165,12 +166,12 @@ class Alkelectrolyzer(object):
     def volt_cell(self):
         'Volt : [v]'
         self.volt_act = self.volt_act_cat()+self.volt_act_an()
-        self.volt_ohm = self.volt_ohm()
-        self.volt_rev =self.volt_rev()
+        self.volt_ohm_ = self.volt_ohm()
+        self.volt_rev_ =self.volt_rev()
         self.volt_diff =0
 
 
-        volt_cell = self.volt_rev + self.volt_act + self.volt_ohm + self.volt_diff
+        volt_cell = self.volt_rev_ + self.volt_act + self.volt_ohm_ + self.volt_diff
         return volt_cell
 
     def efficiency(self):
@@ -226,16 +227,16 @@ class PEMelectrolyzer(object):
 
     def volt_cell(self):
         self.volt_act = self.volt_act_cat()+self.volt_act_an()
-        self.volt_rev = self.volt_rev()
-        self.volt_ohm =self.volt_ohm()
-        self.volt_diff = self.volt_diff()
-        volt_cell  = self.volt_rev + self.volt_act + self.volt_ohm + self.volt_diff
+        self.volt_rev_ = self.volt_rev()
+        self.volt_ohm_ =self.volt_ohm()
+        self.volt_diff_ = self.volt_diff()
+        volt_cell  = self.volt_rev_ + self.volt_act + self.volt_ohm_ + self.volt_diff_
         return volt_cell
 
     def volt_rev(self,):
         V0 = 1.229 - 0.009 * (self.T+273.15 - 298)
         self.P_h2o = 6.1078*10**(-3)*math.exp(17.2694*(self.T)/(self.T-34.85))
-        volt_rev = V0+((self.T+273.15)*self.Ru/self.F*2)*(math.log(((self.p_cat-self.P_h2o)*(self.p_an-self.P_h2o)**0.5)/self.P_h2o))
+        volt_rev = V0 + ((self.T + 273.15) * self.Ru / (self.F * 2)) * (math.log(((self.p_cat - self.P_h2o) * (self.p_an - self.P_h2o) ** 0.5) / self.P_h2o))
         return volt_rev
 
     def volt_act_an(self):
