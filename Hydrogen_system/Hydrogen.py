@@ -161,6 +161,7 @@ class Alkelectrolyzer(object):
     def faraday(self):
 
         n_f = self.i**2/(self.f1+self.i**2)*self.f2
+
         return n_f
 
     def volt_cell(self):
@@ -217,7 +218,6 @@ class PEMelectrolyzer(object):
 
 
 
-
         self.p_an = 30
 
 
@@ -234,7 +234,8 @@ class PEMelectrolyzer(object):
         return volt_cell
 
     def volt_rev(self,):
-        V0 = 1.229 - 0.009 * (self.T+273.15 - 298)
+        # V0 = 1.229 - 0.009 * (self.T+273.15 - 298)
+        V0 = 1.229 + 8.314 * (self.T + 273.15) / (2 * self.F) * math.log(12.8 / self.p_cat * (49.7 / self.p_an) ** 0.5)
         self.P_h2o = 6.1078*10**(-3)*math.exp(17.2694*(self.T)/(self.T + 273.15 - 34.85))
         volt_rev = V0 + ((self.T + 273.15) * self.Ru / (self.F * 2)) * (math.log(((self.p_cat - self.P_h2o) * (self.p_an - self.P_h2o) ** 0.5) / self.P_h2o))
         return volt_rev
@@ -268,13 +269,18 @@ class PEMelectrolyzer(object):
         return  volt_diff
 
     def faraday(self):
-        self.N_h2 = self.N*self.i*self.A/2*self.F
-        self.N_o2 = self.N*self.i*self.A/4*self.F
+        # self.N_h2 = self.N*self.i*self.A/2*self.F
+        # self.N_o2 = self.N*self.i*self.A/4*self.F
+        #
+        #
+        # n =1-self.F*2/self.i*(self.N_h2+self.N_o2*2)
+        d = 1
+        gamma_h2 = self.i / (2 * self.F)
+        phi_h2 = 4.65 * self.p_cat / self.b_thick + 2 * ((self.p_cat - self.p_an) / self.b_thick)
+        phi_o2 = 2 * phi_h2
+        n_f = 1 - phi_h2 / gamma_h2 - 2 * (phi_o2 / gamma_h2)
 
-
-        n =1-self.F*2/self.i*(self.N_h2+self.N_o2*2)
-
-        return n
+        return n_f
 
     def efficiency(self):
         u_c = self.volt_cell()
